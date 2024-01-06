@@ -1,0 +1,9 @@
+# to show current uptime
+uptime
+# to show running services
+top # press q to quit
+# input/output in Mb
+iostat -m
+# the 'd' filters by device report only and -p sda filters by device ID
+# the awk -v OSF='\t' uses tab separators. $ prints specific columns (device id, read/s, readMb/s, write/s, writeMb/s, average queue length)
+iostat -dmx -p sda | awk -v OSF='\t' '{print $1, $2, $3, $8, $9, $22}' > ~/iostat.txt
