@@ -1,0 +1,56 @@
+L. Install Linux
+###################
+# test connection to proxy server if applicable
+echo > /dev/tcp/<ip address/port> && echo "Connected" (config for proxy address available in /etc/apt/)
+curl http://<ip address:port> | le
+
+# make sure the mirror server is available through firewall
+# install open SSH
+
+A. Install apache
+###################
+# you can do this on the machine or via putty
+sudo apt update && upgrade
+sudo apt install apache2
+
+# config firewall to allow apache and ssh
+sudo ufw allow in apache
+sudo ufw allow ssh
+sudo ufw enable
+sudo ufw status verbose (enableing firewall will block things...)
+
+# get ip address for use with putty and confirm that apache is up
+ip a
+
+M. Install MySQL
+#######################
+sudo apt install mysql-server (or mariadb if you prefer)
+# press 'n' to skip password validation and then 'y' for the remaining prompts
+sudo mysql_secure_installation
+# start the server
+sudo mysql
+# allow database user to authenticate with a simple password. case sensitive and colons are necessary at the end of each line
+CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON *.* TO 'username'@'localhost' WITH GRANT OPTION;
+exit
+# set service to start automatically
+sudo systemctl enable mysql
+
+P. Install PHP
+sudo apt install php libapache2-mod-php php-mysql
+#######################
+
+# TEST INSTALLATION
+# run the following commands to set the user and group that own files in the default website directory
+# www-data is the group account Apache uses to server requests
+sudo chown -R <logged in username>:www-data /var/www/html
+# set permissions (7=rwx to owner set by chown above.  This is not the sql login user, but the sudo linux user, 5 = rw to www-data group, 0 = no permissions to others)
+sudo chomd -R 750 /var/www/html
+# set new site files to inheret group permissions
+sudo chmod g+s /var/www/html
+
+# test PHP is correctly installed to make a simple test script into the document root of the website
+echo "<?php phpinfo(); ?>" > > /var/www/html/phpinfo.php
+# open a browser http://<ip address>/phpinfo.php
+# you will see phpinfo.php has been created with different permissions (644).  Many sites use 750 for directories and 640 for files.  Check documentation.
+ls -l /var/www/html
