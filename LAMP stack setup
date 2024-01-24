@@ -29,9 +29,9 @@ sudo apt install mysql-server (or mariadb if you prefer)
 sudo mysql_secure_installation
 # start the server
 sudo mysql
-# allow database user to authenticate with a simple password. case sensitive and colons are necessary at the end of each line
-CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';
-GRANT ALL PRIVILEGES ON *.* TO 'username'@'localhost' WITH GRANT OPTION;
+# allow sql user to authenticate with a simple password. case sensitive and colons are necessary at the end of each line
+CREATE USER 'sqlusername'@'localhost' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON *.* TO 'sqlusername'@'localhost' WITH GRANT OPTION;
 exit
 # set service to start automatically
 sudo systemctl enable mysql
@@ -40,17 +40,47 @@ P. Install PHP
 sudo apt install php libapache2-mod-php php-mysql
 #######################
 
-# TEST INSTALLATION
+# set permissions
 # run the following commands to set the user and group that own files in the default website directory
 # www-data is the group account Apache uses to server requests
-sudo chown -R <logged in username>:www-data /var/www/html
+sudo chown -R logged in username:www-data /var/www/html
 # set permissions (7=rwx to owner set by chown above.  This is not the sql login user, but the sudo linux user, 5 = rw to www-data group, 0 = no permissions to others)
 sudo chomd -R 750 /var/www/html
 # set new site files to inheret group permissions
 sudo chmod g+s /var/www/html
 
-# test PHP is correctly installed to make a simple test script into the document root of the website
+##############
+TESTING
+
+# test if PHP is correctly installed to make a simple test script into the document root of the website.  This should not show in a production enviornment as it contains sensitive information
 echo "<?php phpinfo(); ?>" > > /var/www/html/phpinfo.php
 # open a browser http://<ip address>/phpinfo.php
 # you will see phpinfo.php has been created with different permissions (644).  Many sites use 750 for directories and 640 for files.  Check documentation.
 ls -l /var/www/html
+
+# test if PHP is working with SQL
+# either with winscp or directly on the server with vim/text editor
+# create a new file in /var/www/html
+
+testdb.php
+<?php
+$h = 'localhost';
+$u = 'sqlusername'; # see abvove
+$p = 'password';
+//connect
+$s = newmysqli($h, $u, $p);
+//create database
+$sql = 'CREATE DATABASE test';
+if ($s->query($sql) === TRUE) {
+echo 'Created test db';
+} else {
+  echo 'Error - check credential?';
+}
+//close connection
+$s->close();
+?>
+
+# open a web browser to the ip address/testdb.php
+# log in to sql server and check if database is present
+mysql -u sqlusername -p password
+SHOW DATABASES;
