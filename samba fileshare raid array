@@ -1,0 +1,74 @@
+# assuming we have sdb, sdc, sdd, sde 5GB extra disks.  
+# we will partition disks 
+# then create a logical raid, 
+# then partion volumes in the array, 
+# then create a 'physcial volume' made up of that array
+# then create a LVM logical volume group for that physical volume, 
+# then format with a file system and mount those logical volumes
+
+# in terminal list the available blocks
+lsblk
+
+# Partition disks
+####################
+# its better to partition the block disks before creating the array and to partition them slightly smaller than max size to allow for differences between physical disks
+su -
+# launch partition utilitiy
+gdisk /dev/sdb
+# delete and partition
+o
+y
+# create new partition
+n
+# take defaults and then write changes
+w
+# disk will now be patitioned as sdb1 continue with all the other block devices and create partitions
+
+# Create array
+##########################
+# create RAID 5 array the letters in brackets are the block devices and the number after the bracket is the partiion number (1-128 whatever was chosen for each partition)
+mdadm --create /dev/md0 --level=5 --raid-devices=3 /dev/sd[bcd]1
+
+# confirm array and verfiy, if it shows as degraded wait until rebuild finishes and try again.
+mdadm --detail /dev/md0
+
+# create volumes (LVM = logical volume manager)
+###############
+# define /dev/md0 as a physical volume available to LVM
+pvcreate /dev/md0
+pvdisplay
+
+# create a volume group /dev/md0 for the new volume  This is a 1:1 of physical volume to volume group, but you can have multiple PV to this volume group
+vgcreate  vg0 /dev/md0
+vgdisplay
+
+# create two logical volumes in the volume group (/dev/vg0/smb and /dev/vg0/nfs)
+lvcreate --name smb --size 1GB vg0
+lvcreate --name nfs --size 1GB vg0
+lvdisplay
+
+
+# format and mount to make them available as storage resources to the local server and over the network.
+###################
+# format the smb LV with xfs
+mkfs.xfs /dev/vg0/smb
+
+# to mount temporarily
+/dev/vg0/smb /srv/smb2/
+
+# to create a mount point at boot in the /srv/smb2 directory
+# first backup the 'original' configuration
+cp /etc/fstab /etc/fstab.org
+# create a directory to mount the file system
+mkdir -p /srv/smb2
+
+# use a function to return the volume's unique block ID and add it with the other parameters required for a valid fstab entry
+# 0 parameter disables dump, while 2 sets the file system to be checked at startup (only root system should have this value set to 1)
+echo "UUID=$(blkid /dev/vg0/smb -o value -s UUID) /srv/smb2 xfs defaults 0 2" >> /etc/fstab
+
+# check updated fstab
+cat /etc/fstab
+
+# run the following to reload missing entries from fstab and verify the volume is mounted
+mount -av
+mount | grep vg0
