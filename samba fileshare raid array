@@ -5,6 +5,7 @@
 # then create a 'physcial volume' made up of that array
 # then create a LVM logical volume group for that physical volume, 
 # then format with a file system and mount those logical volumes
+# then configure smb protocol
 
 # in terminal list the available blocks
 lsblk
@@ -72,3 +73,38 @@ cat /etc/fstab
 # run the following to reload missing entries from fstab and verify the volume is mounted
 mount -av
 mount | grep vg0
+
+# to make the volume available as a file share first bacup and then edit the .config
+# backup
+cp /etc/samba/smb.conf /etc/samba/smb.conf.org2
+# open file editor of choice
+vim /etc/samba/smb.conf
+# after the [public] block insert the following code.  This will allow security permissions to be set from the Windows machine
+[collab]
+  path = /srv/smb2/public
+  comment = Samba %v shared reasons
+  browsability = Yes
+  read only = No
+  acl_xattr:ignore system acl = Yes
+:wq
+
+# define the folder owner in Windows
+# Run the following commands:
+mkdir -p /srv/smb2/collab
+chown -R root: "ip address of windows server\localadmin" /srv/smb2/collab/
+chmod -R 0770 /srv/smb2/collab
+
+# apply (mandatory access control) MAC module called SELinux (security enahnced linux) label to restrict the use of any given part of the file system
+# label will be the Samba context
+# create label
+semanage fcontext -a -t samba_share_t "/srv/smb2(/.*)?"
+# apply
+restorecon -Rv /srv/smb2
+# update the Samba configuration
+smbcontrol all-reload-config
+
+######
+# at this point if you logged onto a windows PC machine and UNC pathed into the server you would see the "collab" share, but the user would not have permission to use it
+# on the windows server where this folder is mounted edit security permissions on the folder and add whatever security group or user you want to this share.
+# on the linux server you can use the following command to view permissions
+getfacl /srv/smb2/collab
