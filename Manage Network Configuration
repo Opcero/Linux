@@ -1,0 +1,41 @@
+# can edit in /etc/network/interfaces or in the following tool
+nmcli -o 
+# edit ip address with
+nmcli con mod eth0 ipv4.address
+# optional find the location of the config file and edit there
+nmcli -f NAME,FILENAME connection
+
+# as an alternate to the GUI NetworkManager or editing the config manually, you can use systemd-networkd for Deboam=based distros
+# with either NetworkManager or systemd-networkd, Ubuntu uses an automation technology called Netplan that abstracts networking configuration paramaters
+# and then communicates those to a renderer--use either the NetworkManager or systemd-networkd not both.
+# putty into the gui-less server then type the following command
+systemctl status systemd-networkd
+# this is the default config plan using YAML--careful to preserve indentation structure.
+cat /etc/netplan/00-installer-config.yaml
+netplan apply
+
+
+#######
+JOINING A DOMAIN
+######
+# configure name servers. Edditing this config won't be permanent on reboot.
+cat /etc/resolv.conf
+resolvectl status
+
+# to join a domain the linux server must be on a subnet that can contact a DC and DNS server configured with AD's key SRV records.
+# use dig to find the start of authority for domain.local
+dig soa domain.local
+# find ldap server on port 389
+dig SRV _ldap._tcp.domain.local
+
+# test that the machine can discover the domain
+realm discover
+# verify that a required package is installed (run for others shown in the output for realm discover if desired)
+dnf search oddjob
+# edit hostname as necessary
+hostnamectl set-hostname servername.domain.local
+# make sure system time is +- 5 min of domain controller's time.
+# join the domain domain.local and put into the Servers OU
+realm join --computer-ou="ou=Servers,dc=domain,dc=local"
+# verify
+getent group "domain users@domain.local"
