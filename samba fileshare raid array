@@ -108,3 +108,36 @@ smbcontrol all-reload-config
 # on the windows server where this folder is mounted edit security permissions on the folder and add whatever security group or user you want to this share.
 # on the linux server you can use the following command to view permissions
 getfacl /srv/smb2/collab
+
+
+#######################
+EXTEND THE VOLUME
+######################
+# for example, while a robocopy is proceeding or just to quickly check capacity of the share type the following for the volume group:
+df | grep vg0
+
+# to extend the volume by 4GB:
+lvextend -L4G /dev/vg0/smb
+
+# configure the xfs file system to make use of the newly available space
+xfs_growfs /dev/vg0/smb
+df | grep vg0
+
+################
+Recover array from device failure
+################
+
+# simulate failure (as su) of sdc
+./disk-disable.sh
+# check array and note the uuid
+mdadm --detil /dev/md0
+# identify spare
+lsblk
+# then partition the spare, in this case it is sde.  Go through wizard
+gdisk /dev/sde
+# remove failed drive
+mdadm --manage /dev/md0 --remove /dev/uuid (or partion name?)
+# add newly partitioned spare
+mdadm --manage /dev/md0 -a /dev/sde1
+# check the array, run script to continue checking status
+mdadm --detail /dev/md0
