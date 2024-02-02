@@ -16,3 +16,7 @@ vi .bash_profile
 # G then o to insert text at the end of the file
 export PATH=$PATH:~/scripts
 # esc then :wq
+
+# reload the bash profile and its variables
+source .bash_profile
+hello.sh
