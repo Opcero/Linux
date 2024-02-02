@@ -1,0 +1,18 @@
+# make a directory for the scripts
+mkdir ~/scripts
+
+# create a script file and assign execute permissions to owner and group.  The $_ variable reuses the last parameter (the directory path /usr/local/bin/check_storage.sh in this case) and open vim
+touch ~/scripts/hello.sh && chmod u+x,g+x $_ && vim $_
+
+# in vim insert (press 'i') the shebang and comments/scripts
+#!/bin/bash
+#Report path variable
+printf "\n\nHello $(echo $USER)\n\nYour path is...\n\n$(echo $PATH)\n\n"
+
+#press :wq
+# running hello.sh will fail until bash is configured to execute files from the new directory
+# open the vi editor (or vim or whatever)
+vi .bash_profile
+# G then o to insert text at the end of the file
+export PATH=$PATH:~/scripts
+# esc then :wq
