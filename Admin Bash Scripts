@@ -49,7 +49,7 @@ vol=/dev/mapper/vg0-smb
 # on line 9 enter the following.  
 # $(...) is command substitution aka the output will be the result of the command
 # the first subcommand uses df to get drive info.
-# this is piped to the grep which searches results for anything matching the variable set above
+# this is piped to the grep which searches results for anything matching the variable set above (in this case /dev/sda1 in the raid setup script).
 # the awk command extracts the data to the fifth column of the results.  If you use df -h alone you can see all the details.  The 5th column is % of storage being used.
 # the last cut command strips the percent sign (%) so that the script can perform arithmetic on it.
 # the ultimate result is a single number that represents the percentage of storage being used by the /dev/vg0/smb-volume
