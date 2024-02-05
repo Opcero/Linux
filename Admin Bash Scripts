@@ -1,3 +1,7 @@
+############
+Test script
+###########
+
 # make a directory for the scripts
 mkdir ~/scripts
 
@@ -20,3 +24,35 @@ export PATH=$PATH:~/scripts
 # reload the bash profile and its variables
 source .bash_profile
 hello.sh
+
+######################
+Automate df command
+#####################
+# set the vim editor to use line numbers:
+echo ":set number" >> ~/.vimrc
+
+# create script file and give users the necessary permissions to use it
+touch ~/scripts/check_storage.sh && chmod u+x,g+x $_
+
+# open the script in a text editor and press 'i' to insert the 'shebang' on line 1
+vim ~/scripts/check_storage.sh
+i
+#!/bin/bash
+# on line 2 insert the following comment
+#Use df to report storage utilization
+# press enter twice to skip to line 4, then type the following on lines 4 and 5.  This will echo the current date
+echo "Volume storage check run on $(date)"
+echo "-----------------"
+# on lines 7 and 8 define the variable to use later as the name of the volume to check.  This will obviously change (see raid setup setup script for vg0-smb)
+#Set path to share volume
+vol=/dev/mapper/vg0-smb
+# on line 9 enter the following.  
+# $(...) is command substitution aka the output will be the result of the command
+# the first subcommand uses df to get drive info.
+# this is piped to the grep which searches results for anything matching the variable set above
+# the awk command extracts the data to the fifth column of the results.  If you use df -h alone you can see all the details.  The 5th column is % of storage being used.
+# the last cut command strips the percent sign (%) so that the script can perform arithmetic on it.
+# the ultimate result is a single number that represents the percentage of storage being used by the /dev/vg0/smb-volume
+pc=$(df -h | grep $vol | awk '{print $5}' | cut -d '%' -fl)
+
+
