@@ -55,4 +55,10 @@ vol=/dev/mapper/vg0-smb
 # the ultimate result is a single number that represents the percentage of storage being used by the /dev/vg0/smb-volume
 pc=$(df -h | grep $vol | awk '{print $5}' | cut -d '%' -fl)
 
+# on line 12 and 13 type the following
+echo "$vol is $pc% full"
+echo "Storage check complete"
+# esc :wq to save and close
+
+check_storage.sh
 
