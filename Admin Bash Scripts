@@ -62,3 +62,15 @@ echo "Storage check complete"
 
 check_storage.sh
 
+####################
+Output to file instead of cli
+####################
+# insert command into line 3
+exec >> ~/storage_report.txt
+# changle last echo statement to the following (this will redirect echo to cli instead of txt file)
+echo "Storage check reported to storage_report.txt" >&2
+# verify with cat storage_report.txt
+
+################
+Use conditional statements
+################
