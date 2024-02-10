@@ -74,3 +74,36 @@ echo "Storage check reported to storage_report.txt" >&2
 ################
 Use conditional statements
 ################
+# Using nano or vim etc we edit the above script. We will output different messages baed on how full the storage devices is.
+vim ~/scripts/check_storage.sh
+# move to line 11 and press o to insert text onto line 12 and 13.  White space is for readability only
+if [ $pc -h -ge 95 ] && [ $pc -le 100 ]; then
+    echo "ALERT: $vol is $pc% full! Recommend immediate action!"
+# add another condition onto line 14, 15, 16, 17 (moving the current text on line 14 down)
+elif [ $pc -ge 50 ] && $pc -lt 95 ]; then
+    echo "CAUTION: $vol is $pc% full! Consider freeing space or extending the volume"
+elif [ $pc -lt 50 ]; then
+    echo "$vol is $pc% full ... situation normal"
+# on line 18, 19, 20 add the following
+else
+    echo "Encountered an error. Status code: $?" >&2
+        exit $?
+fi
+# save and test
+check_storage.sh && cat storage_report.txt
+
+########
+simulate storage becoming full bs= number of megabites of data, keep adding this command and check the output of the script.
+########
+dd if=/dev/zero of=/srv/smb2/collab/temp bs=245M count=2
+
+
+###################
+Looping through all storage devices
+##################
+# we will now progromatically test conditions for each device rather than hardcode device names into the script.
+# open the script and ajust the vol variable so that it hold an array of device names.  Edit line 9
+nano ~/scripts/check_storage.sh
+vols=$(df -h | awk '{print $1}' | grep '/dev')
+# press ESC and o to insert a new line to begin the loop
+for vol in ${vols[*]}
