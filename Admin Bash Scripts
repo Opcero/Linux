@@ -107,3 +107,8 @@ nano ~/scripts/check_storage.sh
 vols=$(df -h | awk '{print $1}' | grep '/dev')
 # press ESC and o to insert a new line to begin the loop
 for vol in ${vols[*]}
+# insert a new line for line 11 (above pc=)
+do
+# after line 23 (fi)
+done
+# indent everything between do and done for ease of viewing.
