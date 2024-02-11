@@ -33,3 +33,19 @@ chmod 0770 /srv/nfs/backup
 
 # update the configuration
 exportfs -ra
+
+##############
+Configure the NFS client server
+##############
+
+# Mount the share on LAMP10.  By default only root user can mount file systems.  Create a special entry in /etc/fstab using Putty or the terminal so that the the smb10 server can mount the share
+# first backup the file with .old or .org etc.
+sudo cp /etc/fstab /etc/fstab.org
+# add the following to the last line of the file (type Go)
+sudo vim /etc/fstab
+smb10:/srv/nfs/backup /usr/backup nfs rw/user/noauto 0 0
+ESC :wq
+
+# create mount point and mount the share
+sudo mkdir -p /usr/backup
+mount /usr/backup
