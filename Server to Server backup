@@ -1,0 +1,25 @@
+# remote file transfer using NFS share and  a service user account to facilite the share
+
+systemctl enable --now rpcbind nfs-server
+firewall-cmd --add-service=nfs --permanent
+firewall-cmd --reload
+
+# create a system account (-r) with no home directory (-M) and no login shell (-s)
+useradd -Mrs /bin/false backup
+# run 'id' command and make note of the UID of the account created.
+id backup
+
+# add the share configuration to the /etc/exports file
+vim /etc/exports
+# spacing an order are very important in the follow file syntax
+# insert the following. two acls allowing the lamp10.corp.515support.com server read-write access and hosts on the 10.1.16.0/24 network read-only access. all_scquash causes client users to be mapped to the anonymous or nobody user id on the server. and anonuid an anonguid set the ID of the nobody user to the backup account that was configured
+/srv/nfs/backup lamp10.corp.515support.com(wr,all_squash,anonuid=983,anonguid=983) 10.1.16.0/24 ro,all_squash,anonuid=983,anonguid=983
+ESC :wq
+
+# configure the share directory with the backup account as the owner:
+mkdir -p /srv/nfs/backup
+chown -R backup:backup /svr/nfs/backup
+chmod 0770 /srv/nfs/backup
+
+# update the configuration
+exportfs -ra
