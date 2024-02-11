@@ -1,13 +1,23 @@
 # remote file transfer using NFS share and  a service user account to facilite the share
 
+##############
+configure NFS share on server SMB10
+#############
+
 systemctl enable --now rpcbind nfs-server
 firewall-cmd --add-service=nfs --permanent
 firewall-cmd --reload
+
+
+###############
+configure 'backup' service account on server SMB10 to let server LAMP10 access resources
+###############
 
 # create a system account (-r) with no home directory (-M) and no login shell (-s)
 useradd -Mrs /bin/false backup
 # run 'id' command and make note of the UID of the account created.
 id backup
+
 
 # add the share configuration to the /etc/exports file
 vim /etc/exports
