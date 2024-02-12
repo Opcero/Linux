@@ -88,3 +88,17 @@ mkdir /usr/backup/dvwa-$(date '+%Y-%m-%d') && mv dvwa.* $_
 
 # disconnect the share
 unmount /usr/backup
+
+
+##############
+disaster simulation and restore
+##############
+
+#SMB10 server hosting website delete the folder.  Don't do this in production of course...
+sudo rm -fR /var/www/dvwa.515support.com
+
+# While its possible to configure NFS with authentication and encryption instead of host names and IP addresses (easy to spoof) for access control
+# secuire copy SCP will be used here instead.  SCP uses ssh to authenticate users and encrypt the network connection
+
+# enable public key-based ssh access to SMB10
+# adjust the backup user properties to enable it to be used to log in
