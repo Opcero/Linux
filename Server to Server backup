@@ -1,4 +1,9 @@
 # remote file transfer using NFS share and  a service user account to facilite the share
+# using tar, crontab, and sha256sum we can provide a free backup solution to manage media and backup schedules
+
+# Server: SMB10
+# Client server: LAMP10
+# dir to be backed up: /var/www/dvwa.515support.com directory on the SMB10 server
 
 ##############
 configure NFS share on server SMB10
@@ -10,7 +15,7 @@ firewall-cmd --reload
 
 
 ###############
-configure 'backup' service account on server SMB10 to let server LAMP10 access resources
+configure 'backup' service account on server SMB10 to let server LAMP10 access resources (unnecessary if both servers are joined to the same domain)
 ###############
 
 # create a system account (-r) with no home directory (-M) and no login shell (-s)
@@ -35,7 +40,7 @@ chmod 0770 /srv/nfs/backup
 exportfs -ra
 
 ##############
-Configure the NFS client server
+Configure the NFS client server LAMP10
 ##############
 
 # Mount the share on LAMP10.  By default only root user can mount file systems.  Create a special entry in /etc/fstab using Putty or the terminal so that the the smb10 server can mount the share
@@ -49,3 +54,37 @@ ESC :wq
 # create mount point and mount the share
 sudo mkdir -p /usr/backup
 mount /usr/backup
+
+###############
+Backup the files
+###############
+
+# on LAMP10 run the following cammand to tarball the website directory
+# Tarball is the output of a tar command. The -C sets the root directory to /var/www, this part of the path will not be included in the tarball. -c creates a new output file, -f specfies the name of the output file.  AS no path is supplied the dvwa.tar tarball is created in the current (home) directory
+tar -C /var/www -cf dvwa.tar dvwa.515support.com
+# display the contents of the website tarball (press q to quit)
+tar -tf dvwa.tar | less
+
+# check the date
+date
+# run crontab -e to open the schedule editor, then pick vim as an editor. Type Go and then add the following text at the last line of the file.  Adjust mm and hh to appropriate values so that the job will run in a couple of minutes. 
+# If the time is now 2:13 you would want minutes to be 15 and hh to be 2
+# the -r switch appends the existing tarball with new or changed files.  The asterisks in the crontab set 'any' for the day, month, and day of the week schedule options.
+mm hh * * * tar -C /var/www -rf dvwa.515support.com
+
+# add a file and then use date and journalctl | grep CRON to check that the cronjob executed
+echo "<?php phpinfo(); ?>" > /var/www/dvwa.515support.com/html/phpinfo.php
+date
+journalctl |grep CRON
+
+# confirm the added file was added
+tar -tf dvwa.tar | grep phpinfo.php
+
+# run a secure hash algorithm with 256 bits on the tarball displayed to the terminal
+sha256sum dvwa.tar
+# run it again and redirect the results into a file to accompany the original tarball. Then create a directory on the share with today's date as part of the directory name.  The second part of the command moves all the files in the current directory with names starting with "vwa" to the directory, using the $_ operator to pass the argument from the first command
+sha256sum dvwa.tar > dvwa.tar.sha256
+mkdir /usr/backup/dvwa-$(date '+%Y-%m-%d') && mv dvwa.* $_
+
+# disconnect the share
+unmount /usr/backup
