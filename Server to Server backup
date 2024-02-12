@@ -91,7 +91,7 @@ unmount /usr/backup
 
 
 ##############
-disaster simulation and restore
+disaster simulation and restore using SCP
 ##############
 
 #SMB10 server hosting website delete the folder.  Don't do this in production of course...
@@ -101,4 +101,23 @@ sudo rm -fR /var/www/dvwa.515support.com
 # secuire copy SCP will be used here instead.  SCP uses ssh to authenticate users and encrypt the network connection
 
 # enable public key-based ssh access to SMB10
-# adjust the backup user properties to enable it to be used to log in
+# on SMB10 adjust the backup user properties to enable it to be used to log in. Then use SCP to retrieve the backup and then restore the directory
+usermod -s /bin/bash backup
+mkhomedir_helper backup
+psswrd backup
+
+# on LAMP10 create a keypair for password-less SSH authentication
+ssh-keygen
+# Still on LAMP10copy the public key to SMB10.  This writes the public key to the backup user's file on the SSH server.  Go through the wizard
+ssh-copy-id backup@smb10
+
+# retrieve the tarball
+scp -r backup@smb10:/srv/nfs/backup/* ~/
+
+# verify the dvwa-dd-mm-yyy is present
+ls
+cd dvwa [tab to autocomplete and move to this directory]
+# verify file integrity
+sha256sum dvwa.tar && cat dvwa.tar.sha256
+# extract tarball contents to original directory
+tar -xf dvwa.tar -C /var/www/
