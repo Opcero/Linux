@@ -1,0 +1,22 @@
+# in lieu of password based acces, ssh connections can be authenticated by a client key.  This can go server > client or client > server.
+
+# to enable public key authentication on a server, copy the user's client key to enable passwordless authentication
+# on the server backupup the current config and then review the ssh config file
+# there are two types of key based authentication: 'public', where each user generates their own public key and stored in the user's account in the ~/.ssh/ folder (or elsewhere) and then copied to the server's ~/.ssh/authorized_keys using ssh-copy-id command or SCP.  See server backup bash script for details. 'host' based authentication is that a key is generated on the client and any user on that client machine can use it to connect if they have read permissions to that key file.  On Linux these keys are stored in /etc/ssh and must be copied to /etc/ssh/ssh_known_hosts on the remote server
+cp /etc/ssh/sshd_config ~/sshd_config_old
+sudo vim/etc/ssh/sshd_config
+# test config file
+sudo sshd -t
+
+# for linux to linux use ssh-copy-id ex.:
+# on LAMP10 create a keypair for password-less SSH authentication
+ssh-keygen
+# Still on LAMP10copy the public key to SMB10.  This writes the public key to the backup user's file on the SSH server.  Go through the wizard
+ssh-copy-id backup@smb10
+
+# For linux to windows, on client machine run PuTTYGen to generate standard RSA cipher key of 2048 bits
+# Save public and private key to documents folder or wherever.
+
+# upload private key
+
+
