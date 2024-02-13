@@ -11,12 +11,22 @@ sudo sshd -t
 # for linux to linux use ssh-copy-id ex.:
 # on LAMP10 create a keypair for password-less SSH authentication
 ssh-keygen
-# Still on LAMP10copy the public key to SMB10.  This writes the public key to the backup user's file on the SSH server.  Go through the wizard
+# Still on LAMP10copy the public key to a user configured on SMB10.  This writes the public key to the backup user's file on the SSH server.  Go through the wizard
 ssh-copy-id backup@smb10
 
-# For linux to windows, on client machine run PuTTYGen to generate standard RSA cipher key of 2048 bits
+# For a client on windows to linux this needs to be done manually. on client machine run PuTTYGen to generate standard RSA cipher key of 2048 bits
 # Save public and private key to documents folder or wherever.
 
 # upload private key
+# log onto linux server via putty and run the following
+mkdir ~/.ssh
+vim ~/.ssh/authorized_keys
+# on the windows client, in PuTTygen right click in the public key field and 'select all'.  In the terminal windows past the public key string then save and close the editor.
+
+# on the server now secure the file for use by the account only
+chmod 600 ~/.ssh/authorized_keys
+
+# in Putty on client windows machine navigate to connecton > SSH > Auth select Browse and open the rsa-pri key saved to the documents folder. Select Connection > Data and in the auto-login field type the username
+# save and you can now log in without a password.
 
 
